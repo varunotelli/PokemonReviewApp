@@ -26,7 +26,7 @@ namespace PokemonReviewApp.Controllers
             var categories = _mapper.Map<IList<CategoryDto>>(_categoryRepository.GetCategories());
             if(!ModelState.IsValid) 
             {
-                return BadRequest();
+                return BadRequest(ModelState);
             }
 
             return Ok(categories);
@@ -42,12 +42,14 @@ namespace PokemonReviewApp.Controllers
                 return NotFound();
             }
 
+            var category = _mapper.Map<CategoryDto>(_categoryRepository.GetCategory(id));
+
+
             if (!ModelState.IsValid)
             {
                 return BadRequest();
             }
-            var category = _mapper.Map<CategoryDto>(_categoryRepository.GetCategory(id));
-
+            
             return Ok(category);
 
         }
@@ -61,11 +63,12 @@ namespace PokemonReviewApp.Controllers
                 return NotFound();
             }
 
+            var pokemons = _mapper.Map<IList<PokemonDto>>(_categoryRepository.GetPokemonByCategory(id));
+
             if (!ModelState.IsValid)
             {
-                return BadRequest();
+                return BadRequest(ModelState);
             }
-            var pokemons = _mapper.Map<IList<PokemonDto>>(_categoryRepository.GetPokemonByCategory(id));
 
             return Ok(pokemons);
         }
