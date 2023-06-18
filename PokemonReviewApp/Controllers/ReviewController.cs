@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PokemonReviewApp.Dto;
 using PokemonReviewApp.Interfaces;
+using PokemonReviewApp.Models;
+using PokemonReviewApp.Repository;
 
 namespace PokemonReviewApp.Controllers
 {
@@ -11,11 +13,16 @@ namespace PokemonReviewApp.Controllers
     public class ReviewController : ControllerBase
     {
         private readonly IReviewRepository _reviewRepository;
+        private readonly IPokemonRepository _pokemonRepository;
+        private readonly IReviewerRepository _reviewerRepository;
         private readonly IMapper _mapper;
-        public ReviewController(IReviewRepository reviewRepository, IMapper mapper)
+        public ReviewController(IReviewRepository reviewRepository, IPokemonRepository pokemonRepository,
+            IReviewerRepository reviewerRepository,IMapper mapper)
         {
             _reviewRepository = reviewRepository;
             _mapper = mapper;
+            _pokemonRepository = pokemonRepository;
+            _reviewerRepository = reviewerRepository;
         }
 
         [HttpGet]
@@ -41,6 +48,23 @@ namespace PokemonReviewApp.Controllers
             var review = _mapper.Map<IList<ReviewDto>>(_reviewRepository.GetReviewsByPokemon(id));
             if (!ModelState.IsValid) { return BadRequest(ModelState); }
             return Ok(review);
+        }
+
+        [HttpPost]
+        public IActionResult CreateReview([FromQuery] int pokemonId, [FromQuery] int reviewerId, [FromBody] ReviewDto review)
+        {
+            if (review == null)
+            {
+                return BadRequest(ModelState);
+            }
+            var mapping = _mapper.Map<Review>(review);
+            if (!ModelState.IsValid) { return BadRequest(ModelState); }
+            mapping.Reviewer = _reviewerRepository.GetReviewer(reviewerId);
+            mapping.Pokemon = _pokemonRepository.GetPokemon(pokemonId);
+            if (!_reviewRepository.CreateReview(mapping))
+            { return StatusCode(500, "Something went wrong while saving review"); }
+
+            return Ok("Successfully added review!");
         }
     }
 }

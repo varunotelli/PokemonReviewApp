@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PokemonReviewApp.Dto;
 using PokemonReviewApp.Interfaces;
 using PokemonReviewApp.Models;
+using PokemonReviewApp.Repository;
 
 namespace PokemonReviewApp.Controllers
 {
@@ -58,6 +59,16 @@ namespace PokemonReviewApp.Controllers
             if (!ModelState.IsValid) { return BadRequest(ModelState); }
             return Ok(rating);
         }
+
+        [HttpPost]
+        public IActionResult CreatePokemon([FromQuery]int ownerId, [FromQuery] int categoryId, [FromBody]PokemonDto pokemon)
+        {
+            if (pokemon == null) return BadRequest(ModelState);
+            if (!_pokemonRepository.CreatePokemon(ownerId, categoryId, _mapper.Map<Pokemon>(pokemon))) return StatusCode(500, "Something went wrong");
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            return Ok("Success!");
+        }
+
 
     }
 }
